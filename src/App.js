@@ -1,7 +1,16 @@
 import React from 'react'
 import { Chart } from 'react-charts'
+import _ from 'lodash'
+
+let lodash = () => {
+  let a = _.chunk(['a', 'b', 'c', 'd'], 2);
+  console.log(a);
+}
 
 export default () => {
+
+  lodash();
+
   const data = React.useMemo(
     () => [
       {
