@@ -1,26 +1,51 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import { Chart } from 'react-charts'
 
-function App() {
+export default () => {
+  const data = React.useMemo(
+    () => [
+      {
+        label: 'Series 1',
+        data: [[0, 1], [1, 2], [2, 4], [3, 2], [4, 7]],
+        secondaryAxisID: 'First Metric'
+      },
+      {
+        label: 'Series 2',
+        data: [[0, 300], [1, 100], [2, 500], [3, 600], [4, 400]],
+        secondaryAxisID: 'Second Metric'
+      }
+    ],
+    []
+  )
+
+  const axes = React.useMemo(
+    () => [
+      { primary: true, type: 'time', position: 'bottom' },
+      {
+        type: 'linear',
+        id: 'First Metric',
+        min: 0,
+        position: 'left'
+      },
+      {
+        type: 'linear',
+        id: 'Second Metric',
+        min: 0,
+        position: 'right',
+        format: d => `$${d}`
+      }
+    ],
+    []
+  )
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div
+      style={{
+        width: '400px',
+        height: '300px'
+      }}
+    >
+      <Chart data={data} axes={axes} />
     </div>
-  );
+  )
 }
-
-export default App;
