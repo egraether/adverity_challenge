@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 import { Chart } from 'react-charts'
 import _ from 'lodash'
 
@@ -47,14 +47,25 @@ export default () => {
     []
   )
 
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    document.title = `You clicked ${count} times`;
+  });
+
   return (
     <div
       style={{
         width: '400px',
-        height: '300px'
+        height: '300px',
+        margin: '20px'
       }}
     >
       <Chart data={data} axes={axes} />
+      <p>You clicked {count} times</p>
+      <button onClick={() => setCount(count + 1)}>
+        Click me
+      </button>
     </div>
   )
 }
