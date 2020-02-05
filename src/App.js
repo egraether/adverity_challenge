@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Chart } from 'react-charts'
 import _ from 'lodash'
+import { csv } from 'd3'
+
+const csvFile = "data.csv"
 
 let lodash = () => {
   let a = _.chunk(['a', 'b', 'c', 'd'], 2);
@@ -11,7 +14,7 @@ export default () => {
 
   lodash();
 
-  const data = React.useMemo(
+  const testData = React.useMemo(
     () => [
       {
         label: 'Series 1',
@@ -53,6 +56,14 @@ export default () => {
     document.title = `You clicked ${count} times`;
   });
 
+  const [data, setData] = useState([])
+
+  useEffect(() => {
+    csv(csvFile).then(data => { setData(data) })
+  }, [])
+
+  console.log(data);
+
   return (
     <div
       style={{
@@ -61,7 +72,7 @@ export default () => {
         margin: '20px'
       }}
     >
-      <Chart data={data} axes={axes} />
+      <Chart data={testData} axes={axes} />
       <p>You clicked {count} times</p>
       <button onClick={() => setCount(count + 1)}>
         Click me
