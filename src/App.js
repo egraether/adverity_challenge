@@ -3,6 +3,7 @@ import _ from 'lodash'
 import { csv } from 'd3'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { Chip, Container, FormControl, Grid, InputLabel, MenuItem, Select } from '@material-ui/core';
+import './App.css';
 
 // Utilities ------------------------------------
 
@@ -37,7 +38,7 @@ function AxisLabel({ axisType, x, y, width, height, rotation, stroke, children }
 
 // Components -----------------------------------
 
-class DataSelect extends React.Component
+class FilterSelect extends React.Component
 {
   render()
   {
@@ -84,8 +85,8 @@ class DoubleLineChart extends React.Component
   {
     return (
       <LineChart
-        width={960}
-        height={400}
+        width={this.props.width}
+        height={this.props.height}
         data={this.props.data}
         margin={{
           top: 20, right: 50, left: 30, bottom: 20,
@@ -94,10 +95,24 @@ class DoubleLineChart extends React.Component
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" />
         <YAxis yAxisId="left" label={
-          <AxisLabel axisType="yAxis" x={25} y={175} width={0} height={0} rotation={270}>{this.props.key1}</AxisLabel>
+          <AxisLabel
+            axisType="yAxis"
+            x={25}
+            y={this.props.height / 2 - 25}
+            width={0}
+            height={0}
+            rotation={270}
+          >{this.props.key1}</AxisLabel>
         } />
         <YAxis yAxisId="right" orientation="right" label={
-          <AxisLabel axisType="yAxis" x={940} y={175} width={0} height={0} rotation={90}>{this.props.key2}</AxisLabel>
+          <AxisLabel
+            axisType="yAxis"
+            x={this.props.width - 20}
+            y={this.props.height / 2 - 25}
+            width={0}
+            height={0}
+            rotation={90}
+          >{this.props.key2}</AxisLabel>
         } />
         <Tooltip />
         <Legend />
@@ -124,11 +139,17 @@ function createDatesMap(data)
   let currentDate = stringToDate(_.first(data).Date)
   let lastDateString = stringToDate(_.last(data).Date).toString()
 
-  dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
+  const addDate = (date) => {
+    const dateString = dateToString(date)
+    dates[dateString] = { name: dateString }
+  }
+
+  addDate(currentDate)
+
   while (currentDate.toString() !== lastDateString)
   {
-    currentDate.setDate(currentDate.getDate() + 1);
-    dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
+    currentDate.setDate(currentDate.getDate() + 1)
+    addDate(currentDate)
   }
 
   return dates
@@ -231,12 +252,12 @@ function App()
         </Grid>
 
         <Grid item md={12}>
-          <DoubleLineChart data={chartData} key1="Clicks" key2="Impressions" />
+          <DoubleLineChart data={chartData} key1="Clicks" key2="Impressions" width={960} height={400} />
         </Grid>
 
         <Grid item md={6}>
-          <DataSelect
-            name="DataSource"
+          <FilterSelect
+            name="Datasource"
             select={currentDataSources}
             items={availableDataSources}
             onChange={values => setCurrentDataSources(values)}
@@ -244,7 +265,7 @@ function App()
         </Grid>
 
         <Grid item md={6}>
-          <DataSelect
+          <FilterSelect
             name="Campaign"
             select={currentCampaigns}
             items={availableCampaigns}
