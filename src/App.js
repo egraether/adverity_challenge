@@ -1,12 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import _ from 'lodash'
 import { csv } from 'd3'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { Chip, Container, FormControl, InputLabel, MenuItem, Select } from '@material-ui/core';
 
-const csvFile = "data.csv"
+// Utilities ------------------------------------
 
-const AxisLabel = ({ axisType, x, y, width, height, rotation, stroke, children }) => {
+function toTwoDigitString(number) {
+  return number < 10 ? '0' + number : number
+}
+
+function stringToDate(string) {
+  let parts = _.split(string, '.');
+  return new Date(Number.parseInt(parts[2]), Number.parseInt(parts[1]) - 1, Number.parseInt(parts[0]));
+}
+
+function dateToString(date) {
+  return toTwoDigitString(date.getDate()) + '.' + toTwoDigitString((date.getMonth() + 1)) + '.' + date.getFullYear()
+}
+
+function AxisLabel({ axisType, x, y, width, height, rotation, stroke, children }) {
   const isVert = axisType === 'yAxis';
   const cx = isVert ? x : x + (width / 2);
   const cy = isVert ? (height / 2) + y : y + height + 10;
@@ -18,18 +31,7 @@ const AxisLabel = ({ axisType, x, y, width, height, rotation, stroke, children }
   );
 };
 
-function stringToDate(string) {
-  let parts = _.split(string, '.');
-  return new Date(Number.parseInt(parts[2]), Number.parseInt(parts[1]) - 1, Number.parseInt(parts[0]));
-}
-
-function toTwoDigits(number) {
-  return number < 10 ? '0' + number : number
-}
-
-function dateToString(date) {
-  return toTwoDigits(date.getDate()) + '.' + toTwoDigits((date.getMonth() + 1)) + '.' + date.getFullYear()
-}
+// Components -----------------------------------
 
 class DataSelect extends React.Component {
   render() {
@@ -69,78 +71,89 @@ class DataSelect extends React.Component {
   }
 }
 
-export default () => {
-  const [data, setData] = useState([])
+// App ------------------------------------------
 
-  useEffect(() => {
-    csv(csvFile).then(data => { setData(data) })
+// returns a map of all Dates between first and last object in the data
+function createDatesMap(data)
+{
+  if (!data.length)
+  {
+    return []
+  }
+
+  // We assume that the data is in chronological order by Date
+  let currentDate = stringToDate(_.first(data).Date)
+  let lastDateString = stringToDate(_.last(data).Date).toString()
+
+  let dates = {}
+  dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
+  while (currentDate.toString() !== lastDateString)
+  {
+    currentDate.setDate(currentDate.getDate() + 1);
+    dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
+  }
+
+  return dates
+}
+
+// returns an array of all Dates with Click and Impressions property if available for that Date
+function createChartData(data, currentDataSources, currentCampaigns)
+{
+  let filteredData = data
+
+  if (currentDataSources.length)
+  {
+    filteredData = _.filter(filteredData, d => _.includes(currentDataSources, d.Datasource))
+  }
+
+  if (currentCampaigns.length)
+  {
+    filteredData = _.filter(filteredData, d => _.includes(currentCampaigns, d.Campaign))
+  }
+
+  return _.map(_.reduce(filteredData, function(dates, value, key) {
+    let date = dates[value.Date]
+
+    if (value.Clicks.length)
+    {
+      if (!date.Clicks)
+      {
+        date.Clicks = 0;
+      }
+
+      date.Clicks += Number.parseInt(value.Clicks)
+    }
+
+    if (value.Impressions.length)
+    {
+      if (!date.Impressions)
+      {
+        date.Impressions = 0;
+      }
+
+      date.Impressions += Number.parseInt(value.Impressions)
+    }
+
+    return dates
+  }, createDatesMap(data)), d => d)
+}
+
+function App() {
+  const [data, setData] = React.useState([])
+
+  React.useEffect(() => {
+    csv("data.csv").then(data => { setData(data) })
   }, [])
 
-  const [currentDataSources, setCurrentDataSources] = useState([])
-  const [currentCampaigns, setCurrentCampaigns] = useState([])
+  const [currentDataSources, setCurrentDataSources] = React.useState([])
+  const [currentCampaigns, setCurrentCampaigns] = React.useState([])
 
   const chartData = React.useMemo(
     () => {
-      if (!data.length)
-      {
-        return []
-      }
-
-      let currentDate = stringToDate(_.first(data).Date)
-      let lastDateString = stringToDate(_.last(data).Date).toString()
-
-      let dates = {}
-      dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
-      while (currentDate.toString() !== lastDateString)
-      {
-        currentDate.setDate(currentDate.getDate() + 1);
-        dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
-      }
-
-      let chartData = data
-
-      if (currentDataSources.length)
-      {
-        chartData = _.filter(chartData, d => _.includes(currentDataSources, d.Datasource))
-      }
-
-      if (currentCampaigns.length)
-      {
-        chartData = _.filter(chartData, d => _.includes(currentCampaigns, d.Campaign))
-      }
-
-      // Assumes that the data is in chronological order according to Date
-      return _.map(_.reduce(chartData, function(result, value, key) {
-        let date = result[value.Date]
-
-        if (value.Clicks.length)
-        {
-          if (!date.Clicks)
-          {
-            date.Clicks = 0;
-          }
-
-          date.Clicks += Number.parseInt(value.Clicks)
-        }
-
-        if (value.Impressions.length)
-        {
-          if (!date.Impressions)
-          {
-            date.Impressions = 0;
-          }
-
-          date.Impressions += Number.parseInt(value.Impressions)
-        }
-
-        return result
-      }, dates), d => d)
+      return createChartData(data, currentDataSources, currentCampaigns)
     },
     [data, currentDataSources, currentCampaigns]
   )
-
-  console.log(data)
-  console.log(chartData)
 
   const availableDataSources = _.uniq(_.map(data, d => d.Datasource))
   const availableCampaigns = _.uniq(_.map(data, d => d.Campaign))
@@ -187,3 +200,5 @@ export default () => {
     </Container>
   )
 }
+
+export default App;
