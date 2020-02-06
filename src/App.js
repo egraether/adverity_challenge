@@ -42,7 +42,7 @@ class DataSelect extends React.Component {
           labelId="label"
           id="select"
           multiple
-          style={{minWidth: '200px'}}
+          style={{minWidth: '250px'}}
           value={this.props.select.length ? this.props.select : ["All"]}
           onChange={(e, c) => this.onChange(e, c)}
           renderValue={selected => (
@@ -73,19 +73,20 @@ class DataSelect extends React.Component {
 
 // App ------------------------------------------
 
-// returns a map of all Dates between first and last object in the data
+// returns a map of all Dates between first and last entry in the data
+// this assumes that the data is in chronological order by Date
 function createDatesMap(data)
 {
+  let dates = {}
+
   if (!data.length)
   {
-    return []
+    return dates;
   }
 
-  // We assume that the data is in chronological order by Date
   let currentDate = stringToDate(_.first(data).Date)
   let lastDateString = stringToDate(_.last(data).Date).toString()
 
-  let dates = {}
   dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
   while (currentDate.toString() !== lastDateString)
   {
@@ -96,7 +97,7 @@ function createDatesMap(data)
   return dates
 }
 
-// returns an array of all Dates with Click and Impressions property if available for that Date
+// returns an array of all Dates with 'Clicks' and 'Impressions' property if available for each Date
 function createChartData(data, currentDataSources, currentCampaigns)
 {
   let filteredData = data
@@ -140,14 +141,14 @@ function createChartData(data, currentDataSources, currentCampaigns)
 
 function App() {
   const [data, setData] = React.useState([])
+  const [currentDataSources, setCurrentDataSources] = React.useState([])
+  const [currentCampaigns, setCurrentCampaigns] = React.useState([])
 
   React.useEffect(() => {
     csv("data.csv").then(data => { setData(data) })
   }, [])
 
-  const [currentDataSources, setCurrentDataSources] = React.useState([])
-  const [currentCampaigns, setCurrentCampaigns] = React.useState([])
-
+  // filter data by selected Datasources and Campaigns
   const chartData = React.useMemo(
     () => {
       return createChartData(data, currentDataSources, currentCampaigns)
@@ -155,16 +156,27 @@ function App() {
     [data, currentDataSources, currentCampaigns]
   )
 
-  const availableDataSources = _.uniq(_.map(data, d => d.Datasource))
-  const availableCampaigns = _.uniq(_.map(data, d => d.Campaign))
+  // only show Datasources for selection that are present in the selected Campaigns
+  const availableDataSources = React.useMemo(
+    () => {
+      return _.uniq(_.map(
+        currentCampaigns.length ? _.filter(data, d => _.includes(currentCampaigns, d.Campaign)) : data,
+        d => d.Datasource
+      )).sort()
+    },
+    [data, currentCampaigns]
+  )
 
-  let updateDataSources = values => {
-    setCurrentDataSources(values)
-  }
-
-  let updateCampaigns = values => {
-    setCurrentCampaigns(values)
-  }
+  // only show Campaigns for selection that are present in the selected Datasources
+  const availableCampaigns = React.useMemo(
+    () => {
+      return _.uniq(_.map(
+        currentDataSources.length ? _.filter(data, d => _.includes(currentDataSources, d.Datasource)) : data,
+        d => d.Campaign
+      )).sort()
+    },
+    [data, currentDataSources]
+  )
 
   return (
     <Container maxWidth="md">
@@ -192,10 +204,10 @@ function App() {
       </LineChart>
 
       <div style={{padding:'20px'}}>
-        <DataSelect name="DataSource" select={currentDataSources} items={availableDataSources} onChange={values => updateDataSources(values)} />
+        <DataSelect name="DataSource" select={currentDataSources} items={availableDataSources} onChange={values => setCurrentDataSources(values)} />
       </div>
       <div style={{padding:'20px'}}>
-        <DataSelect name="Campaign" select={currentCampaigns} items={availableCampaigns} onChange={values => updateCampaigns(values)} />
+        <DataSelect name="Campaign" select={currentCampaigns} items={availableCampaigns} onChange={values => setCurrentCampaigns(values)} />
       </div>
     </Container>
   )
