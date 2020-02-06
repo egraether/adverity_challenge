@@ -18,10 +18,23 @@ const AxisLabel = ({ axisType, x, y, width, height, rotation, stroke, children }
   );
 };
 
+function stringToDate(string) {
+  let parts = _.split(string, '.');
+  return new Date(Number.parseInt(parts[2]), Number.parseInt(parts[1]) - 1, Number.parseInt(parts[0]));
+}
+
+function toTwoDigits(number) {
+  return number < 10 ? '0' + number : number
+}
+
+function dateToString(date) {
+  return toTwoDigits(date.getDate()) + '.' + toTwoDigits((date.getMonth() + 1)) + '.' + date.getFullYear()
+}
+
 class DataSelect extends React.Component {
   render() {
     return (
-      <FormControl style={{maxWidth: 'sm'}}>
+      <FormControl style={{maxWidth: 'md'}}>
         <InputLabel id="label">{this.props.name}</InputLabel>
         <Select
           labelId="label"
@@ -68,6 +81,22 @@ export default () => {
 
   const chartData = React.useMemo(
     () => {
+      if (!data.length)
+      {
+        return []
+      }
+
+      let currentDate = stringToDate(_.first(data).Date)
+      let lastDateString = stringToDate(_.last(data).Date).toString()
+
+      let dates = {}
+      dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
+      while (currentDate.toString() !== lastDateString)
+      {
+        currentDate.setDate(currentDate.getDate() + 1);
+        dates[dateToString(currentDate)] = { name: dateToString(currentDate) }
+      }
+
       let chartData = data
 
       if (currentDataSources.length)
@@ -81,30 +110,31 @@ export default () => {
       }
 
       // Assumes that the data is in chronological order according to Date
-      chartData = _.map(_.reduce(chartData, function(result, value, key) {
-        if (!result[value.Date])
-        {
-          result[value.Date] = {
-            name: value.Date,
-            Clicks: 0,
-            Impressions: 0
-          }
-        }
+      return _.map(_.reduce(chartData, function(result, value, key) {
+        let date = result[value.Date]
 
         if (value.Clicks.length)
         {
-          result[value.Date].Clicks += Number.parseInt(value.Clicks)
+          if (!date.Clicks)
+          {
+            date.Clicks = 0;
+          }
+
+          date.Clicks += Number.parseInt(value.Clicks)
         }
 
         if (value.Impressions.length)
         {
-          result[value.Date].Impressions += Number.parseInt(value.Impressions)
+          if (!date.Impressions)
+          {
+            date.Impressions = 0;
+          }
+
+          date.Impressions += Number.parseInt(value.Impressions)
         }
 
         return result
-      }, {}), d => d)
-
-      return chartData
+      }, dates), d => d)
     },
     [data, currentDataSources, currentCampaigns]
   )
@@ -124,10 +154,10 @@ export default () => {
   }
 
   return (
-    <Container maxWidth="sm">
-      <h1>Adverity Advertising Data ETL-V Challenge</h1>
+    <Container maxWidth="md">
+      <h1><span>Adverity</span> Advertising Data ETL-V Challenge</h1>
       <LineChart
-        width={600}
+        width={960}
         height={400}
         data={chartData}
         margin={{
@@ -140,7 +170,7 @@ export default () => {
           <AxisLabel axisType="yAxis" x={25} y={175} width={0} height={0} rotation={270}>Clicks</AxisLabel>
         } />
         <YAxis yAxisId="right" orientation="right" label={
-          <AxisLabel axisType="yAxis" x={580} y={175} width={0} height={0} rotation={90}>Impressions</AxisLabel>
+          <AxisLabel axisType="yAxis" x={940} y={175} width={0} height={0} rotation={90}>Impressions</AxisLabel>
         } />
         <Tooltip />
         <Legend />
