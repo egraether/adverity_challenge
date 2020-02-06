@@ -6,20 +6,24 @@ import { Chip, Container, FormControl, InputLabel, MenuItem, Select } from '@mat
 
 // Utilities ------------------------------------
 
-function toTwoDigitString(number) {
+function toTwoDigitString(number)
+{
   return number < 10 ? '0' + number : number
 }
 
-function stringToDate(string) {
+function stringToDate(string)
+{
   let parts = _.split(string, '.');
   return new Date(Number.parseInt(parts[2]), Number.parseInt(parts[1]) - 1, Number.parseInt(parts[0]));
 }
 
-function dateToString(date) {
+function dateToString(date)
+{
   return toTwoDigitString(date.getDate()) + '.' + toTwoDigitString((date.getMonth() + 1)) + '.' + date.getFullYear()
 }
 
-function AxisLabel({ axisType, x, y, width, height, rotation, stroke, children }) {
+function AxisLabel({ axisType, x, y, width, height, rotation, stroke, children })
+{
   const isVert = axisType === 'yAxis';
   const cx = isVert ? x : x + (width / 2);
   const cy = isVert ? (height / 2) + y : y + height + 10;
@@ -33,8 +37,10 @@ function AxisLabel({ axisType, x, y, width, height, rotation, stroke, children }
 
 // Components -----------------------------------
 
-class DataSelect extends React.Component {
-  render() {
+class DataSelect extends React.Component
+{
+  render()
+  {
     return (
       <FormControl style={{maxWidth: 'md'}}>
         <InputLabel id="label">{this.props.name}</InputLabel>
@@ -64,9 +70,40 @@ class DataSelect extends React.Component {
     )
   }
 
-  onChange(event, child) {
+  onChange(event, child)
+  {
     this.props.onChange(
       child.props.value === "All" ? [] : _.remove(event.target.value, d => { return d !== "All" })
+    )
+  }
+}
+
+class DoubleLineChart extends React.Component
+{
+  render()
+  {
+    return (
+      <LineChart
+        width={960}
+        height={400}
+        data={this.props.data}
+        margin={{
+          top: 20, right: 50, left: 30, bottom: 20,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis yAxisId="left" label={
+          <AxisLabel axisType="yAxis" x={25} y={175} width={0} height={0} rotation={270}>{this.props.key1}</AxisLabel>
+        } />
+        <YAxis yAxisId="right" orientation="right" label={
+          <AxisLabel axisType="yAxis" x={940} y={175} width={0} height={0} rotation={90}>{this.props.key2}</AxisLabel>
+        } />
+        <Tooltip />
+        <Legend />
+        <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey={this.props.key1} stroke="#EC6A2D" strokeWidth={2} />
+        <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey={this.props.key2} stroke="#404E55" strokeWidth={2} />
+      </LineChart>
     )
   }
 }
@@ -112,41 +149,49 @@ function createChartData(data, currentDataSources, currentCampaigns)
     filteredData = _.filter(filteredData, d => _.includes(currentCampaigns, d.Campaign))
   }
 
-  return _.map(_.reduce(filteredData, function(dates, value, key) {
-    let date = dates[value.Date]
+  return _.map(_.reduce(
+    filteredData,
+    (dates, value, key) => {
+      let date = dates[value.Date]
 
-    if (value.Clicks.length)
-    {
-      if (!date.Clicks)
+      if (value.Clicks.length)
       {
-        date.Clicks = 0;
+        if (!date.Clicks)
+        {
+          date.Clicks = 0;
+        }
+
+        date.Clicks += Number.parseInt(value.Clicks)
       }
 
-      date.Clicks += Number.parseInt(value.Clicks)
-    }
-
-    if (value.Impressions.length)
-    {
-      if (!date.Impressions)
+      if (value.Impressions.length)
       {
-        date.Impressions = 0;
+        if (!date.Impressions)
+        {
+          date.Impressions = 0;
+        }
+
+        date.Impressions += Number.parseInt(value.Impressions)
       }
 
-      date.Impressions += Number.parseInt(value.Impressions)
-    }
-
-    return dates
-  }, createDatesMap(data)), d => d)
+      return dates
+    },
+    createDatesMap(data)
+  ), d => d)
 }
 
-function App() {
+function App()
+{
   const [data, setData] = React.useState([])
   const [currentDataSources, setCurrentDataSources] = React.useState([])
   const [currentCampaigns, setCurrentCampaigns] = React.useState([])
 
-  React.useEffect(() => {
-    csv("data.csv").then(data => { setData(data) })
-  }, [])
+  React.useEffect(
+    () => {
+      csv("data.csv").then(data => { setData(data) })
+    },
+    []
+  )
 
   // filter data by selected Datasources and Campaigns
   const chartData = React.useMemo(
@@ -181,27 +226,8 @@ function App() {
   return (
     <Container maxWidth="md">
       <h1><span>Adverity</span> Advertising Data ETL-V Challenge</h1>
-      <LineChart
-        width={960}
-        height={400}
-        data={chartData}
-        margin={{
-          top: 20, right: 50, left: 30, bottom: 20,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis yAxisId="left" label={
-          <AxisLabel axisType="yAxis" x={25} y={175} width={0} height={0} rotation={270}>Clicks</AxisLabel>
-        } />
-        <YAxis yAxisId="right" orientation="right" label={
-          <AxisLabel axisType="yAxis" x={940} y={175} width={0} height={0} rotation={90}>Impressions</AxisLabel>
-        } />
-        <Tooltip />
-        <Legend />
-        <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey="Clicks" stroke="#EC6A2D" strokeWidth={2} />
-        <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey="Impressions" stroke="#404E55" strokeWidth={2} />
-      </LineChart>
+
+      <DoubleLineChart data={chartData} key1="Clicks" key2="Impressions" />
 
       <div style={{padding:'20px'}}>
         <DataSelect name="DataSource" select={currentDataSources} items={availableDataSources} onChange={values => setCurrentDataSources(values)} />
