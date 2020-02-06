@@ -12,7 +12,7 @@ const AxisLabel = ({ axisType, x, y, width, height, rotation, stroke, children }
   const cy = isVert ? (height / 2) + y : y + height + 10;
   const rot = rotation ? `${rotation} ${cx} ${cy}` : 0;
   return (
-    <text x={cx} y={cy} transform={`rotate(${rot})`} textAnchor="middle" stroke={stroke}>
+    <text x={cx} y={cy} transform={`rotate(${rot})`} textAnchor="middle" stroke={stroke} fill='#404E55'>
       {children}
     </text>
   );
@@ -27,6 +27,7 @@ class DataSelect extends React.Component {
           labelId="label"
           id="select"
           multiple
+          style={{minWidth: '200px'}}
           value={this.props.select.length ? this.props.select : ["All"]}
           onChange={(e, c) => this.onChange(e, c)}
           renderValue={selected => (
@@ -50,7 +51,7 @@ class DataSelect extends React.Component {
 
   onChange(event, child) {
     this.props.onChange(
-      child.props.value === "All" ? [] : _.remove(event.target.value, d => { return d != "All" })
+      child.props.value === "All" ? [] : _.remove(event.target.value, d => { return d !== "All" })
     )
   }
 }
@@ -61,8 +62,6 @@ export default () => {
   useEffect(() => {
     csv(csvFile).then(data => { setData(_.take(data, 1000)) })
   }, [])
-
-  console.log(data);
 
   const chartData = React.useMemo(
     () => {
@@ -95,36 +94,36 @@ export default () => {
   }
 
   return (
-    <div>
-      <Container maxWidth="sm">
-        <LineChart
-          width={500}
-          height={300}
-          data={chartData}
-          margin={{
-            top: 20, right: 40, left: 20, bottom: 20,
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="name" />
-          <YAxis yAxisId="left" label={
-            <AxisLabel axisType="yAxis" x={25} y={125} width={0} height={0} rotation={270}>Clicks</AxisLabel>
-          } />
-          <YAxis yAxisId="right" orientation="right" label={
-            <AxisLabel axisType="yAxis" x={480} y={125} width={0} height={0} rotation={90}>Impressions</AxisLabel>
-          } />
-          <Tooltip />
-          <Legend />
-          <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey="Clicks" stroke="#8884d8" activeDot={{ r: 8 }} />
-          <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey="Impressions" stroke="#82ca9d" />
-        </LineChart>
+    <Container maxWidth="sm">
+      <h1>Adverity Advertising Data ETL-V Challenge</h1>
+      <LineChart
+        width={600}
+        height={400}
+        data={chartData}
+        margin={{
+          top: 20, right: 40, left: 20, bottom: 20,
+        }}
+      >
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="name" />
+        <YAxis yAxisId="left" label={
+          <AxisLabel axisType="yAxis" x={25} y={175} width={0} height={0} rotation={270}>Clicks</AxisLabel>
+        } />
+        <YAxis yAxisId="right" orientation="right" label={
+          <AxisLabel axisType="yAxis" x={580} y={175} width={0} height={0} rotation={90}>Impressions</AxisLabel>
+        } />
+        <Tooltip />
+        <Legend />
+        <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey="Impressions" stroke="#404E55" strokeWidth={2} />
+        <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey="Clicks" stroke="#EC6A2D" strokeWidth={2} />
+      </LineChart>
 
-        <div style={{padding:'20px'}}>
-          <DataSelect name="DataSource" select={dataSelect} items={datasources} onChange={values => updateDataSource(values)} />
-          <br />
-          <DataSelect name="Campaign" select={campaignSelect} items={campaigns} onChange={values => updateCampaign(values)} />
-        </div>
-      </Container>
-    </div>
+      <div style={{padding:'20px'}}>
+        <DataSelect name="DataSource" select={dataSelect} items={datasources} onChange={values => updateDataSource(values)} />
+      </div>
+      <div style={{padding:'20px'}}>
+        <DataSelect name="Campaign" select={campaignSelect} items={campaigns} onChange={values => updateCampaign(values)} />
+      </div>
+    </Container>
   )
 }
