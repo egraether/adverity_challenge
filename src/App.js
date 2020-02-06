@@ -60,37 +60,67 @@ export default () => {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    csv(csvFile).then(data => { setData(_.take(data, 1000)) })
+    csv(csvFile).then(data => { setData(data) })
   }, [])
+
+  const [currentDataSources, setCurrentDataSources] = useState([])
+  const [currentCampaigns, setCurrentCampaigns] = useState([])
 
   const chartData = React.useMemo(
     () => {
-      let a = 0;
+      let chartData = data
 
-      return _.map(_.take(data, 15), d => {
-        return {
-          name: String(a++),
-          Clicks: Number.parseInt(d.Clicks),
-          Impressions: Number.parseInt(d.Impressions)
+      if (currentDataSources.length)
+      {
+        chartData = _.filter(chartData, d => _.includes(currentDataSources, d.Datasource))
+      }
+
+      if (currentCampaigns.length)
+      {
+        chartData = _.filter(chartData, d => _.includes(currentCampaigns, d.Campaign))
+      }
+
+      // Assumes that the data is in chronological order according to Date
+      chartData = _.map(_.reduce(chartData, function(result, value, key) {
+        if (!result[value.Date])
+        {
+          result[value.Date] = {
+            name: value.Date,
+            Clicks: 0,
+            Impressions: 0
+          }
         }
-      })
+
+        if (value.Clicks.length)
+        {
+          result[value.Date].Clicks += Number.parseInt(value.Clicks)
+        }
+
+        if (value.Impressions.length)
+        {
+          result[value.Date].Impressions += Number.parseInt(value.Impressions)
+        }
+
+        return result
+      }, {}), d => d)
+
+      return chartData
     },
-    [data]
+    [data, currentDataSources, currentCampaigns]
   )
 
-  const [dataSelect, setDataSelect] = useState([])
-  const [campaignSelect, setCampaignSelect] = useState([])
+  console.log(data)
+  console.log(chartData)
 
-  const datasources = _.uniq(_.map(data, d => d.Datasource))
-  const campaigns = _.uniq(_.map(data, d => d.Campaign))
+  const availableDataSources = _.uniq(_.map(data, d => d.Datasource))
+  const availableCampaigns = _.uniq(_.map(data, d => d.Campaign))
 
-  let updateDataSource = values => {
-    console.log("set", values)
-    setDataSelect(values)
+  let updateDataSources = values => {
+    setCurrentDataSources(values)
   }
 
-  let updateCampaign = values => {
-    setCampaignSelect(values)
+  let updateCampaigns = values => {
+    setCurrentCampaigns(values)
   }
 
   return (
@@ -101,7 +131,7 @@ export default () => {
         height={400}
         data={chartData}
         margin={{
-          top: 20, right: 40, left: 20, bottom: 20,
+          top: 20, right: 50, left: 30, bottom: 20,
         }}
       >
         <CartesianGrid strokeDasharray="3 3" />
@@ -114,15 +144,15 @@ export default () => {
         } />
         <Tooltip />
         <Legend />
-        <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey="Impressions" stroke="#404E55" strokeWidth={2} />
         <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey="Clicks" stroke="#EC6A2D" strokeWidth={2} />
+        <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey="Impressions" stroke="#404E55" strokeWidth={2} />
       </LineChart>
 
       <div style={{padding:'20px'}}>
-        <DataSelect name="DataSource" select={dataSelect} items={datasources} onChange={values => updateDataSource(values)} />
+        <DataSelect name="DataSource" select={currentDataSources} items={availableDataSources} onChange={values => updateDataSources(values)} />
       </div>
       <div style={{padding:'20px'}}>
-        <DataSelect name="Campaign" select={campaignSelect} items={campaigns} onChange={values => updateCampaign(values)} />
+        <DataSelect name="Campaign" select={currentCampaigns} items={availableCampaigns} onChange={values => updateCampaigns(values)} />
       </div>
     </Container>
   )
