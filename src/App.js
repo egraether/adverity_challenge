@@ -2,7 +2,7 @@ import React from 'react';
 import _ from 'lodash'
 import { csv } from 'd3'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { Chip, Container, FormControl, InputLabel, MenuItem, Select } from '@material-ui/core';
+import { Chip, Container, FormControl, Grid, InputLabel, MenuItem, Select } from '@material-ui/core';
 
 // Utilities ------------------------------------
 
@@ -225,16 +225,33 @@ function App()
 
   return (
     <Container maxWidth="md">
-      <h1><span>Adverity</span> Advertising Data ETL-V Challenge</h1>
+      <Grid container spacing={3}>
+        <Grid item md={12}>
+          <h1><span>Adverity</span> Advertising Data ETL-V Challenge</h1>
+        </Grid>
 
-      <DoubleLineChart data={chartData} key1="Clicks" key2="Impressions" />
+        <Grid item md={12}>
+          <DoubleLineChart data={chartData} key1="Clicks" key2="Impressions" />
+        </Grid>
 
-      <div style={{padding:'20px'}}>
-        <DataSelect name="DataSource" select={currentDataSources} items={availableDataSources} onChange={values => setCurrentDataSources(values)} />
-      </div>
-      <div style={{padding:'20px'}}>
-        <DataSelect name="Campaign" select={currentCampaigns} items={availableCampaigns} onChange={values => setCurrentCampaigns(values)} />
-      </div>
+        <Grid item md={6}>
+          <DataSelect
+            name="DataSource"
+            select={currentDataSources}
+            items={availableDataSources}
+            onChange={values => setCurrentDataSources(values)}
+          />
+        </Grid>
+
+        <Grid item md={6}>
+          <DataSelect
+            name="Campaign"
+            select={currentCampaigns}
+            items={availableCampaigns}
+            onChange={values => setCurrentCampaigns(values)}
+          />
+        </Grid>
+      </Grid>
     </Container>
   )
 }
