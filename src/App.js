@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import _ from 'lodash'
 import { csv } from 'd3'
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-} from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 
 const csvFile = "data.csv"
 
@@ -30,7 +28,7 @@ export default () => {
   const [data, setData] = useState([])
 
   useEffect(() => {
-    csv(csvFile).then(data => { setData(_.take(data, 15)) })
+    csv(csvFile).then(data => { setData(data) })
   }, [])
 
   console.log(data);
@@ -39,7 +37,7 @@ export default () => {
     () => {
       let a = 0;
 
-      return _.map(data, d => {
+      return _.map(_.take(data, 15), d => {
         return {
           name: String(a++),
           Clicks: Number.parseInt(d.Clicks),
@@ -70,8 +68,8 @@ export default () => {
         } />
         <Tooltip />
         <Legend />
-        <Line yAxisId="left" type="monotone" dataKey="Clicks" stroke="#8884d8" activeDot={{ r: 8 }} />
-        <Line yAxisId="right" type="monotone" dataKey="Impressions" stroke="#82ca9d" />
+        <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey="Clicks" stroke="#8884d8" activeDot={{ r: 8 }} />
+        <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey="Impressions" stroke="#82ca9d" />
       </LineChart>
       <p>You clicked {count} times</p>
       <button onClick={() => setCount(count + 1)}>
