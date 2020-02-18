@@ -2,20 +2,9 @@ import _ from 'lodash'
 import { stringToDate } from '../utilities/stringToDate.js'
 import { accumulatedNumberOrNaN } from './accumulatedNumberOrNaN.js'
 import { createDatesListRecursive } from './createDatesListRecursive.js'
-import { filterByPropertyValue } from './filterByPropertyValue.js'
 
 export const createChartData = (data, currentDataSources, currentCampaigns) => {
-  const filteredData = filterByPropertyValue(
-    filterByPropertyValue(
-      data,
-      "Datasource",
-      currentDataSources
-    ),
-    "Campaign",
-    currentCampaigns
-  );
-
-  const dates = _.map(_.groupBy(filteredData, "Date"), d => {
+  const dates = _.map(_.groupBy(data, "Date"), d => {
     return {
       name: _.first(d).Date,
       Clicks : accumulatedNumberOrNaN(d, "Clicks"),

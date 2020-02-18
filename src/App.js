@@ -23,7 +23,17 @@ const App = () => {
   )
 
   const chartData = React.useMemo(() => {
-      return createChartData(data, currentDataSources, currentCampaigns)
+      return createChartData(
+        filterByPropertyValue(
+          filterByPropertyValue(
+            data,
+            "Datasource",
+            currentDataSources
+          ),
+          "Campaign",
+          currentCampaigns
+        )
+      )
     },
     [data, currentDataSources, currentCampaigns]
   )
