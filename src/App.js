@@ -12,7 +12,7 @@ const toTwoDigitString = (number) => {
 }
 
 const stringToDate = (string) => {
-  let parts = _.split(string, '.')
+  const parts = _.split(string, '.')
   return new Date(Number.parseInt(parts[2]), Number.parseInt(parts[1]) - 1, Number.parseInt(parts[0]))
 }
 
@@ -58,7 +58,7 @@ const FilterSelect = ({ name, items, selectedItems, onChange }) => {
         )}
       >
         <MenuItem value="All">All</MenuItem>
-        {_.map(items, d => {
+        {items.map(d => {
           return (
             <MenuItem value={d} key={d}>{d}</MenuItem>
           )
@@ -145,12 +145,12 @@ const createChartData = (data, currentDataSources, currentCampaigns) => {
 
   if (currentDataSources.length)
   {
-    filteredData = _.filter(filteredData, d => _.includes(currentDataSources, d.Datasource))
+    filteredData = filteredData.filter(d => _.includes(currentDataSources, d.Datasource))
   }
 
   if (currentCampaigns.length)
   {
-    filteredData = _.filter(filteredData, d => _.includes(currentCampaigns, d.Campaign))
+    filteredData = filteredData.filter(d => _.includes(currentCampaigns, d.Campaign))
   }
 
   return _.map(_.reduce(
@@ -209,7 +209,7 @@ const App = () => {
   const availableDataSources = React.useMemo(
     () => {
       return _.uniq(_.map(
-        currentCampaigns.length ? _.filter(data, d => _.includes(currentCampaigns, d.Campaign)) : data,
+        currentCampaigns.length ? data.filter(d => _.includes(currentCampaigns, d.Campaign)) : data,
         d => d.Datasource
       )).sort()
     },
@@ -220,7 +220,7 @@ const App = () => {
   const availableCampaigns = React.useMemo(
     () => {
       return _.uniq(_.map(
-        currentDataSources.length ? _.filter(data, d => _.includes(currentDataSources, d.Datasource)) : data,
+        currentDataSources.length ? data.filter(d => _.includes(currentDataSources, d.Datasource)) : data,
         d => d.Campaign
       )).sort()
     },
