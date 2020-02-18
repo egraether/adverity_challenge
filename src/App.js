@@ -7,128 +7,112 @@ import './App.css';
 
 // Utilities ------------------------------------
 
-function toTwoDigitString(number)
-{
+const toTwoDigitString = (number) => {
   return number < 10 ? '0' + number : number
 }
 
-function stringToDate(string)
-{
-  let parts = _.split(string, '.');
-  return new Date(Number.parseInt(parts[2]), Number.parseInt(parts[1]) - 1, Number.parseInt(parts[0]));
+const stringToDate = (string) => {
+  let parts = _.split(string, '.')
+  return new Date(Number.parseInt(parts[2]), Number.parseInt(parts[1]) - 1, Number.parseInt(parts[0]))
 }
 
-function dateToString(date)
-{
+const dateToString = (date) => {
   return toTwoDigitString(date.getDate()) + '.' + toTwoDigitString((date.getMonth() + 1)) + '.' + date.getFullYear()
 }
 
-function AxisLabel({ axisType, x, y, width, height, rotation, stroke, children })
-{
-  const isVert = axisType === 'yAxis';
-  const cx = isVert ? x : x + (width / 2);
-  const cy = isVert ? (height / 2) + y : y + height + 10;
-  const rot = rotation ? `${rotation} ${cx} ${cy}` : 0;
+const AxisLabel = ({ axisType, x, y, width, height, rotation, stroke, children }) => {
+  const isVert = axisType === 'yAxis'
+  const cx = isVert ? x : x + (width / 2)
+  const cy = isVert ? (height / 2) + y : y + height + 10
+  const rot = rotation ? `${rotation} ${cx} ${cy}` : 0
   return (
     <text x={cx} y={cy} transform={`rotate(${rot})`} textAnchor="middle" stroke={stroke} fill='#404E55'>
       {children}
     </text>
-  );
-};
+  )
+}
 
 // Components -----------------------------------
 
-class FilterSelect extends React.Component
-{
-  render()
-  {
-    return (
-      <FormControl style={{maxWidth: 'md'}}>
-        <InputLabel id="label">{this.props.name}</InputLabel>
-        <Select
-          labelId="label"
-          id="select"
-          multiple
-          style={{minWidth: '250px'}}
-          value={this.props.select.length ? this.props.select : ["All"]}
-          onChange={(e, c) => this.onChange(e, c)}
-          renderValue={selected => (
-            <div style={{display: 'flex', flexWrap: 'wrap'}}>
-              {selected.map(value => (
-                <Chip key={value} label={value} style={{margin: 2}} />
-              ))}
-            </div>
-          )}
-        >
-          <MenuItem value="All">All</MenuItem>
-          {_.map(this.props.items, d => {
-            return (
-              <MenuItem value={d} key={d}>{d}</MenuItem>
-            )
-          })}
-        </Select>
-      </FormControl>
-    )
-  }
-
-  onChange(event, child)
-  {
-    this.props.onChange(
-      child.props.value === "All" ? [] : _.remove(event.target.value, d => { return d !== "All" })
-    )
-  }
+const FilterSelect = (props) => {
+  return (
+    <FormControl style={{maxWidth: 'md'}}>
+      <InputLabel id="label">{props.name}</InputLabel>
+      <Select
+        labelId="label"
+        id="select"
+        multiple
+        style={{minWidth: '250px'}}
+        value={props.select.length ? props.select : ["All"]}
+        onChange={(event, child) => {
+          props.onChange(
+            child.props.value === "All" ? [] : _.remove(event.target.value, d => { return d !== "All" })
+          )
+        }}
+        renderValue={selected => (
+          <div style={{display: 'flex', flexWrap: 'wrap'}}>
+            {selected.map(value => (
+              <Chip key={value} label={value} style={{margin: 2}} />
+            ))}
+          </div>
+        )}
+      >
+        <MenuItem value="All">All</MenuItem>
+        {_.map(props.items, d => {
+          return (
+            <MenuItem value={d} key={d}>{d}</MenuItem>
+          )
+        })}
+      </Select>
+    </FormControl>
+  )
 }
 
-class DoubleLineChart extends React.Component
-{
-  render()
-  {
-    return (
-      <LineChart
-        width={this.props.width}
-        height={this.props.height}
-        data={this.props.data}
-        margin={{
-          top: 20, right: 50, left: 30, bottom: 20,
-        }}
-      >
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis yAxisId="left" label={
-          <AxisLabel
-            axisType="yAxis"
-            x={25}
-            y={this.props.height / 2 - 25}
-            width={0}
-            height={0}
-            rotation={270}
-          >{this.props.key1}</AxisLabel>
-        } />
-        <YAxis yAxisId="right" orientation="right" label={
-          <AxisLabel
-            axisType="yAxis"
-            x={this.props.width - 20}
-            y={this.props.height / 2 - 25}
-            width={0}
-            height={0}
-            rotation={90}
-          >{this.props.key2}</AxisLabel>
-        } />
-        <Tooltip />
-        <Legend />
-        <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey={this.props.key1} stroke="#EC6A2D" strokeWidth={2} />
-        <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey={this.props.key2} stroke="#404E55" strokeWidth={2} />
-      </LineChart>
-    )
-  }
+const DoubleLineChart = (props) => {
+  return (
+    <LineChart
+      width={props.width}
+      height={props.height}
+      data={props.data}
+      margin={{
+        top: 20, right: 50, left: 30, bottom: 20,
+      }}
+    >
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="name" />
+      <YAxis yAxisId="left" label={
+        <AxisLabel
+          axisType="yAxis"
+          x={25}
+          y={props.height / 2 - 25}
+          width={0}
+          height={0}
+          rotation={270}
+        >{props.key1}</AxisLabel>
+      } />
+      <YAxis yAxisId="right" orientation="right" label={
+        <AxisLabel
+          axisType="yAxis"
+          x={props.width - 20}
+          y={props.height / 2 - 25}
+          width={0}
+          height={0}
+          rotation={90}
+        >{props.key2}</AxisLabel>
+      } />
+      <Tooltip />
+      <Legend />
+      <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey={props.key1} stroke="#EC6A2D" strokeWidth={2} />
+      <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey={props.key2} stroke="#404E55" strokeWidth={2} />
+    </LineChart>
+  )
 }
 
 // App ------------------------------------------
 
 // returns a map of all Dates between first and last entry in the data
 // this assumes that the data is in chronological order by Date
-function createDatesMap(data)
-{
+const createDatesMap = (data) => {
   let dates = {}
 
   if (!data.length)
@@ -156,8 +140,7 @@ function createDatesMap(data)
 }
 
 // returns an array of all Dates with 'Clicks' and 'Impressions' property if available for each Date
-function createChartData(data, currentDataSources, currentCampaigns)
-{
+const createChartData = (data, currentDataSources, currentCampaigns) => {
   let filteredData = data
 
   if (currentDataSources.length)
@@ -201,8 +184,7 @@ function createChartData(data, currentDataSources, currentCampaigns)
   ), d => d)
 }
 
-function App()
-{
+const App = () => {
   const [data, setData] = React.useState([])
   const [currentDataSources, setCurrentDataSources] = React.useState([])
   const [currentCampaigns, setCurrentCampaigns] = React.useState([])
