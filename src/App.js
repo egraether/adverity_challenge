@@ -4,31 +4,9 @@ import { csv } from 'd3'
 import { Container, Grid } from '@material-ui/core';
 import { DoubleLineChart } from './components/DoubleLineChart.js'
 import { FilterSelect } from './components/FilterSelect.js'
+import { stringToDate } from './utilities/stringToDate.js'
+import { incrementDateString } from './utilities/incrementDateString.js'
 import './App.css';
-
-// Utilities ------------------------------------
-
-const toTwoDigitString = (number) => {
-  return number < 10 ? '0' + number : number
-}
-
-const stringToDate = (string) => {
-  const parts = _.split(string, '.')
-  return new Date(Number.parseInt(parts[2]), Number.parseInt(parts[1]) - 1, Number.parseInt(parts[0]))
-}
-
-const dateToString = (date) => {
-  return toTwoDigitString(date.getDate()) + '.' + toTwoDigitString((date.getMonth() + 1)) + '.' + date.getFullYear()
-}
-
-const incrementDate = (date) => {
-  date.setDate(date.getDate() + 1)
-  return date;
-}
-
-const incrementDateString = (dateString) => {
-  return dateToString(incrementDate(stringToDate(dateString)))
-}
 
 // App ------------------------------------------
 
