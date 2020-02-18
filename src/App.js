@@ -184,6 +184,14 @@ const createChartData = (data, currentDataSources, currentCampaigns) => {
   ), d => d)
 }
 
+const filterByPropertyValue = (data, key, values) => {
+  return values.length ? data.filter(d => _.includes(values, d[key])) : data;
+}
+
+const uniquePropertyValuesSorted = (data, key) => {
+  return _.uniq(data.map(d => d[key])).sort()
+}
+
 const App = () => {
   const [data, setData] = React.useState([])
   const [currentDataSources, setCurrentDataSources] = React.useState([])
@@ -206,12 +214,8 @@ const App = () => {
   )
 
   // only show Datasources for selection that are present in the selected Campaigns
-  const availableDataSources = React.useMemo(
-    () => {
-      return _.uniq(_.map(
-        currentCampaigns.length ? data.filter(d => _.includes(currentCampaigns, d.Campaign)) : data,
-        d => d.Datasource
-      )).sort()
+  const availableDataSources = React.useMemo(() => {
+      return uniquePropertyValuesSorted(filterByPropertyValue(data, "Campaign", currentCampaigns), "Datasource")
     },
     [data, currentCampaigns]
   )
@@ -219,10 +223,7 @@ const App = () => {
   // only show Campaigns for selection that are present in the selected Datasources
   const availableCampaigns = React.useMemo(
     () => {
-      return _.uniq(_.map(
-        currentDataSources.length ? data.filter(d => _.includes(currentDataSources, d.Datasource)) : data,
-        d => d.Campaign
-      )).sort()
+      return uniquePropertyValuesSorted(filterByPropertyValue(data, "Datasource", currentDataSources), "Campaign")
     },
     [data, currentDataSources]
   )
