@@ -1,5 +1,4 @@
 import React from 'react';
-import _ from 'lodash'
 import { csv } from 'd3'
 import { Container, Grid } from '@material-ui/core';
 import { DoubleLineChart } from './components/DoubleLineChart.js'
