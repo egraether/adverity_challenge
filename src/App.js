@@ -34,31 +34,31 @@ const AxisLabel = ({ axisType, x, y, width, height, rotation, stroke, children }
 
 // Components -----------------------------------
 
-const FilterSelect = (props) => {
+const FilterSelect = ({ name, items, selectedItems, onChange }) => {
   return (
     <FormControl style={{maxWidth: 'md'}}>
-      <InputLabel id="label">{props.name}</InputLabel>
+      <InputLabel id="label">{name}</InputLabel>
       <Select
         labelId="label"
         id="select"
         multiple
         style={{minWidth: '250px'}}
-        value={props.select.length ? props.select : ["All"]}
+        value={selectedItems.length ? selectedItems : ["All"]}
         onChange={(event, child) => {
-          props.onChange(
+          onChange(
             child.props.value === "All" ? [] : _.remove(event.target.value, d => { return d !== "All" })
           )
         }}
-        renderValue={selected => (
+        renderValue={selectedItems => (
           <div style={{display: 'flex', flexWrap: 'wrap'}}>
-            {selected.map(value => (
+            {selectedItems.map(value => (
               <Chip key={value} label={value} style={{margin: 2}} />
             ))}
           </div>
         )}
       >
         <MenuItem value="All">All</MenuItem>
-        {_.map(props.items, d => {
+        {_.map(items, d => {
           return (
             <MenuItem value={d} key={d}>{d}</MenuItem>
           )
@@ -68,12 +68,12 @@ const FilterSelect = (props) => {
   )
 }
 
-const DoubleLineChart = (props) => {
+const DoubleLineChart = ({ data, key1, key2, width, height }) => {
   return (
     <LineChart
-      width={props.width}
-      height={props.height}
-      data={props.data}
+      width={width}
+      height={height}
+      data={data}
       margin={{
         top: 20, right: 50, left: 30, bottom: 20,
       }}
@@ -84,26 +84,26 @@ const DoubleLineChart = (props) => {
         <AxisLabel
           axisType="yAxis"
           x={25}
-          y={props.height / 2 - 25}
+          y={height / 2 - 25}
           width={0}
           height={0}
           rotation={270}
-        >{props.key1}</AxisLabel>
+        >{key1}</AxisLabel>
       } />
       <YAxis yAxisId="right" orientation="right" label={
         <AxisLabel
           axisType="yAxis"
-          x={props.width - 20}
-          y={props.height / 2 - 25}
+          x={width - 20}
+          y={height / 2 - 25}
           width={0}
           height={0}
           rotation={90}
-        >{props.key2}</AxisLabel>
+        >{key2}</AxisLabel>
       } />
       <Tooltip />
       <Legend />
-      <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey={props.key1} stroke="#EC6A2D" strokeWidth={2} />
-      <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey={props.key2} stroke="#404E55" strokeWidth={2} />
+      <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey={key1} stroke="#EC6A2D" strokeWidth={2} />
+      <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey={key2} stroke="#404E55" strokeWidth={2} />
     </LineChart>
   )
 }
@@ -240,8 +240,8 @@ const App = () => {
         <Grid item md={6}>
           <FilterSelect
             name="Datasource"
-            select={currentDataSources}
             items={availableDataSources}
+            selectedItems={currentDataSources}
             onChange={values => setCurrentDataSources(values)}
           />
         </Grid>
@@ -249,8 +249,8 @@ const App = () => {
         <Grid item md={6}>
           <FilterSelect
             name="Campaign"
-            select={currentCampaigns}
             items={availableCampaigns}
+            selectedItems={currentCampaigns}
             onChange={values => setCurrentCampaigns(values)}
           />
         </Grid>
