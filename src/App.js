@@ -1,8 +1,9 @@
 import React from 'react';
 import _ from 'lodash'
 import { csv } from 'd3'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-import { Chip, Container, FormControl, Grid, InputLabel, MenuItem, Select } from '@material-ui/core';
+import { Container, Grid } from '@material-ui/core';
+import { DoubleLineChart } from './components/DoubleLineChart.js'
+import { FilterSelect } from './components/FilterSelect.js'
 import './App.css';
 
 // Utilities ------------------------------------
@@ -27,94 +28,6 @@ const incrementDate = (date) => {
 
 const incrementDateString = (dateString) => {
   return dateToString(incrementDate(stringToDate(dateString)))
-}
-
-const AxisLabel = ({ axisType, x, y, width, height, rotation, stroke, children }) => {
-  const isVert = axisType === 'yAxis'
-  const cx = isVert ? x : x + (width / 2)
-  const cy = isVert ? (height / 2) + y : y + height + 10
-  const rot = rotation ? `${rotation} ${cx} ${cy}` : 0
-  return (
-    <text x={cx} y={cy} transform={`rotate(${rot})`} textAnchor="middle" stroke={stroke} fill='#404E55'>
-      {children}
-    </text>
-  )
-}
-
-// Components -----------------------------------
-
-const FilterSelect = ({ name, items, selectedItems, onChange }) => {
-  return (
-    <FormControl style={{maxWidth: 'md'}}>
-      <InputLabel id="label">{name}</InputLabel>
-      <Select
-        labelId="label"
-        id="select"
-        multiple
-        style={{minWidth: '250px'}}
-        value={selectedItems.length ? selectedItems : ["All"]}
-        onChange={(event, child) => {
-          onChange(
-            child.props.value === "All" ? [] : _.remove(event.target.value, d => { return d !== "All" })
-          )
-        }}
-        renderValue={selectedItems => (
-          <div style={{display: 'flex', flexWrap: 'wrap'}}>
-            {selectedItems.map(value => (
-              <Chip key={value} label={value} style={{margin: 2}} />
-            ))}
-          </div>
-        )}
-      >
-        <MenuItem value="All">All</MenuItem>
-        {items.map(d => {
-          return (
-            <MenuItem value={d} key={d}>{d}</MenuItem>
-          )
-        })}
-      </Select>
-    </FormControl>
-  )
-}
-
-const DoubleLineChart = ({ data, key1, key2, width, height }) => {
-  return (
-    <LineChart
-      width={width}
-      height={height}
-      data={data}
-      margin={{
-        top: 20, right: 50, left: 30, bottom: 20,
-      }}
-    >
-      <CartesianGrid strokeDasharray="3 3" />
-      <XAxis dataKey="name" />
-      <YAxis yAxisId="left" label={
-        <AxisLabel
-          axisType="yAxis"
-          x={25}
-          y={height / 2 - 25}
-          width={0}
-          height={0}
-          rotation={270}
-        >{key1}</AxisLabel>
-      } />
-      <YAxis yAxisId="right" orientation="right" label={
-        <AxisLabel
-          axisType="yAxis"
-          x={width - 20}
-          y={height / 2 - 25}
-          width={0}
-          height={0}
-          rotation={90}
-        >{key2}</AxisLabel>
-      } />
-      <Tooltip />
-      <Legend />
-      <Line yAxisId="left" type="monotone" isAnimationActive={false} dataKey={key1} stroke="#EC6A2D" strokeWidth={2} />
-      <Line yAxisId="right" type="monotone" isAnimationActive={false} dataKey={key2} stroke="#404E55" strokeWidth={2} />
-    </LineChart>
-  )
 }
 
 // App ------------------------------------------
