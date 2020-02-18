@@ -119,66 +119,52 @@ const DoubleLineChart = ({ data, key1, key2, width, height }) => {
 
 // App ------------------------------------------
 
-const createDatesMapRecursive = (datesMap, currentDate, lastDate) => {
-  datesMap[currentDate] = { name: currentDate }
-  if (currentDate !== lastDate)
-  {
-    createDatesMapRecursive(datesMap, incrementDateString(currentDate), lastDate)
-  }
-  return datesMap;
-}
-
-// returns an array of all Dates with 'Clicks' and 'Impressions' property if available for each Date
-const createChartData = (data, currentDataSources, currentCampaigns) => {
-  let filteredData = data
-
-  if (currentDataSources.length)
-  {
-    filteredData = filteredData.filter(d => _.includes(currentDataSources, d.Datasource))
-  }
-
-  if (currentCampaigns.length)
-  {
-    filteredData = filteredData.filter(d => _.includes(currentCampaigns, d.Campaign))
-  }
-
-  return _.map(_.reduce(
-    filteredData,
-    (dates, value, key) => {
-      let date = dates[value.Date]
-
-      if (value.Clicks.length)
-      {
-        if (!date.Clicks)
-        {
-          date.Clicks = 0;
-        }
-
-        date.Clicks += Number.parseInt(value.Clicks)
-      }
-
-      if (value.Impressions.length)
-      {
-        if (!date.Impressions)
-        {
-          date.Impressions = 0;
-        }
-
-        date.Impressions += Number.parseInt(value.Impressions)
-      }
-
-      return dates
-    },
-    data.length ? createDatesMapRecursive({}, _.first(data).Date, _.last(data).Date) : {}
-  ), d => d)
-}
-
 const filterByPropertyValue = (data, key, values) => {
   return values.length ? data.filter(d => _.includes(values, d[key])) : data;
 }
 
 const uniquePropertyValuesSorted = (data, key) => {
   return _.uniq(data.map(d => d[key])).sort()
+}
+
+const accumulatedNumberOrNaN = (list, key) => {
+  if (_.findIndex(list, e => e[key] ) !== -1)
+  {
+    return _.sumBy(list, e => { return e[key].length ? Number.parseInt(e[key]) : 0 })
+  }
+  return NaN
+}
+
+const createDatesListRecursive = (datesList, currentDate, lastDate) => {
+  datesList.push({ name: currentDate });
+  if (currentDate !== lastDate)
+  {
+    createDatesListRecursive(datesList, incrementDateString(currentDate), lastDate)
+  }
+  return datesList;
+}
+
+const createChartData = (data, currentDataSources, currentCampaigns) => {
+  const filteredData = filterByPropertyValue(
+    filterByPropertyValue(
+      data,
+      "Datasource",
+      currentDataSources
+    ),
+    "Campaign",
+    currentCampaigns
+  );
+
+  const dates = _.map(_.groupBy(filteredData, "Date"), d => {
+    return {
+      name: _.first(d).Date,
+      Clicks : accumulatedNumberOrNaN(d, "Clicks"),
+      Impressions : accumulatedNumberOrNaN(d, "Impressions")
+    }
+  })
+
+  const allDates = data.length ? createDatesListRecursive([], _.first(data).Date, _.last(data).Date) : {}
+  return _.sortBy(_.unionBy(dates, allDates, "name"), [d => stringToDate(d.name)]);
 }
 
 const App = () => {
@@ -194,7 +180,6 @@ const App = () => {
     []
   )
 
-  // filter data by selected Datasources and Campaigns
   const chartData = React.useMemo(
     () => {
       return createChartData(data, currentDataSources, currentCampaigns)
@@ -202,14 +187,12 @@ const App = () => {
     [data, currentDataSources, currentCampaigns]
   )
 
-  // only show Datasources for selection that are present in the selected Campaigns
   const availableDataSources = React.useMemo(() => {
       return uniquePropertyValuesSorted(filterByPropertyValue(data, "Campaign", currentCampaigns), "Datasource")
     },
     [data, currentCampaigns]
   )
 
-  // only show Campaigns for selection that are present in the selected Datasources
   const availableCampaigns = React.useMemo(
     () => {
       return uniquePropertyValuesSorted(filterByPropertyValue(data, "Datasource", currentDataSources), "Campaign")
