@@ -20,6 +20,15 @@ const dateToString = (date) => {
   return toTwoDigitString(date.getDate()) + '.' + toTwoDigitString((date.getMonth() + 1)) + '.' + date.getFullYear()
 }
 
+const incrementDate = (date) => {
+  date.setDate(date.getDate() + 1)
+  return date;
+}
+
+const incrementDateString = (dateString) => {
+  return dateToString(incrementDate(stringToDate(dateString)))
+}
+
 const AxisLabel = ({ axisType, x, y, width, height, rotation, stroke, children }) => {
   const isVert = axisType === 'yAxis'
   const cx = isVert ? x : x + (width / 2)
@@ -110,33 +119,13 @@ const DoubleLineChart = ({ data, key1, key2, width, height }) => {
 
 // App ------------------------------------------
 
-// returns a map of all Dates between first and last entry in the data
-// this assumes that the data is in chronological order by Date
-const createDatesMap = (data) => {
-  let dates = {}
-
-  if (!data.length)
+const createDatesMapRecursive = (datesMap, currentDate, lastDate) => {
+  datesMap[currentDate] = { name: currentDate }
+  if (currentDate !== lastDate)
   {
-    return dates;
+    createDatesMapRecursive(datesMap, incrementDateString(currentDate), lastDate)
   }
-
-  let currentDate = stringToDate(_.first(data).Date)
-  let lastDateString = stringToDate(_.last(data).Date).toString()
-
-  const addDate = (date) => {
-    const dateString = dateToString(date)
-    dates[dateString] = { name: dateString }
-  }
-
-  addDate(currentDate)
-
-  while (currentDate.toString() !== lastDateString)
-  {
-    currentDate.setDate(currentDate.getDate() + 1)
-    addDate(currentDate)
-  }
-
-  return dates
+  return datesMap;
 }
 
 // returns an array of all Dates with 'Clicks' and 'Impressions' property if available for each Date
@@ -180,7 +169,7 @@ const createChartData = (data, currentDataSources, currentCampaigns) => {
 
       return dates
     },
-    createDatesMap(data)
+    data.length ? createDatesMapRecursive({}, _.first(data).Date, _.last(data).Date) : {}
   ), d => d)
 }
 
