@@ -1,4 +1,4 @@
-import { incrementDate } from './incrementDate.js'
+import { incrementDate } from "./incrementDate.js";
 
 test("increments date string", () => {
   const date = incrementDate(new Date(2020, 2, 17));

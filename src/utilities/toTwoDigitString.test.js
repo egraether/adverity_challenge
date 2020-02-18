@@ -1,4 +1,4 @@
-import { toTwoDigitString } from './toTwoDigitString.js'
+import { toTwoDigitString } from "./toTwoDigitString.js";
 
 test("adds leading zero to one positive digit number", () => {
   expect(toTwoDigitString(1)).toStrictEqual("01");

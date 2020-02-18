@@ -1,4 +1,4 @@
-import { stringToDate } from './stringToDate.js'
+import { stringToDate } from "./stringToDate.js";
 
 test("parses date", () => {
   const date = stringToDate("17.03.2020");

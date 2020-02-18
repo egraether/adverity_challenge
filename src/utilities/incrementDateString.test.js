@@ -1,4 +1,4 @@
-import { incrementDateString } from './incrementDateString.js'
+import { incrementDateString } from "./incrementDateString.js";
 
 test("increments date string", () => {
   expect(incrementDateString("17.03.2020")).toStrictEqual("18.03.2020");
