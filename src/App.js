@@ -189,9 +189,10 @@ const App = () => {
   const [currentDataSources, setCurrentDataSources] = React.useState([])
   const [currentCampaigns, setCurrentCampaigns] = React.useState([])
 
-  React.useEffect(
-    () => {
-      csv("data.csv").then(data => { setData(data) })
+  React.useEffect(() => {
+      (async () => {
+        csv("data.csv").then(data => setData(data))
+      })();
     },
     []
   )
