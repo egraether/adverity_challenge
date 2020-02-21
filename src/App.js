@@ -19,29 +19,35 @@ const App = () => {
     })();
   }, []);
 
-  const chartData = React.useMemo(() => {
-    return createChartData(
-      filterByPropertyValue(
+  const chartData = React.useMemo(
+    () =>
+      createChartData(
+        filterByPropertyValue(
+          filterByPropertyValue(data, "Datasource", currentDataSources),
+          "Campaign",
+          currentCampaigns
+        )
+      ),
+    [data, currentDataSources, currentCampaigns]
+  );
+
+  const availableDataSources = React.useMemo(
+    () =>
+      uniquePropertyValuesSorted(
+        filterByPropertyValue(data, "Campaign", currentCampaigns),
+        "Datasource"
+      ),
+    [data, currentCampaigns]
+  );
+
+  const availableCampaigns = React.useMemo(
+    () =>
+      uniquePropertyValuesSorted(
         filterByPropertyValue(data, "Datasource", currentDataSources),
-        "Campaign",
-        currentCampaigns
-      )
-    );
-  }, [data, currentDataSources, currentCampaigns]);
-
-  const availableDataSources = React.useMemo(() => {
-    return uniquePropertyValuesSorted(
-      filterByPropertyValue(data, "Campaign", currentCampaigns),
-      "Datasource"
-    );
-  }, [data, currentCampaigns]);
-
-  const availableCampaigns = React.useMemo(() => {
-    return uniquePropertyValuesSorted(
-      filterByPropertyValue(data, "Datasource", currentDataSources),
-      "Campaign"
-    );
-  }, [data, currentDataSources]);
+        "Campaign"
+      ),
+    [data, currentDataSources]
+  );
 
   return (
     <Container maxWidth="md">

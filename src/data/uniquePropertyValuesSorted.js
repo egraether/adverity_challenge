@@ -1,9 +1,6 @@
 import _ from "lodash";
 
-export const uniquePropertyValuesSorted = (data, key) => {
-  return _.uniq(data.map(d => d[key]))
-    .filter(d => {
-      return d !== undefined;
-    })
+export const uniquePropertyValuesSorted = (data, key) =>
+  _.uniq(data.map(d => d[key]))
+    .filter(d => d !== undefined)
     .sort();
-};
